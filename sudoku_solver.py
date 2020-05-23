@@ -34,17 +34,16 @@ logging.basicConfig(level=logging.CRITICAL)
 
 # A random sample sudoku puzzle from websudoku:
 
-sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
-                 [0, 0, 3, 7, 1, 0, 0, 0, 0],
-                 [0, 0, 7, 4, 0, 8, 0, 0, 0],
-                 [0, 9, 4, 0, 8, 0, 3, 0, 0],
-                 [1, 7, 6, 0, 5, 0, 2, 9, 8],
-                 [0, 0, 8, 0, 9, 0, 4, 1, 0],
-                 [0, 0, 0, 5, 0, 1, 6, 0, 0],
-                 [0, 0, 0, 0, 7, 3, 5, 0, 0],
-                 [0, 4, 0, 0, 0, 9, 0, 3, 1]
-                 ]
-
+#sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
+                 # [0, 0, 3, 7, 1, 0, 0, 0, 0],
+                 # [0, 0, 7, 4, 0, 8, 0, 0, 0],
+                 # [0, 9, 4, 0, 8, 0, 3, 0, 0],
+                 # [1, 7, 6, 0, 5, 0, 2, 9, 8],
+                 # [0, 0, 8, 0, 9, 0, 4, 1, 0],
+                 # [0, 0, 0, 5, 0, 1, 6, 0, 0],
+                 # [0, 0, 0, 0, 7, 3, 5, 0, 0],
+                 # [0, 4, 0, 0, 0, 9, 0, 3, 1]
+                 # ]
 
 # sudoku_puzzle = [[3, 0, 1, 8, 0, 7, 0, 0, 0],
 #                  [6, 0, 0, 4, 9, 1, 3, 7, 0],
@@ -71,6 +70,33 @@ sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
 #                  ]
 
 
+# To generalize:
+# Sudoku is based off base 9 numbering (note that '0' does not exist) and that it is a squared integer. Thus, a Sudoku
+# puzzle with base 4 or base 16 are quite possible.
+
+sudoku4 = [[1, 2, 3, 4],
+           [3, 4, 1, 2],
+           [2, 1, 4, 3],
+           [4, 3, 2, 1]
+           ]
+
+
+
+# The above is a valid Sudoku on base 4. Hexadecimal Sudoku's also exist (hexadoku)
+# TODO: write webscraper or so to more easily parse out samples
+# So we should be able to generalize our function to solve any sized sudoku's as long as we pass the correct bases and
+# roots.
+
+sudoku_grid_size = 4
+
+sudoku_root = int(sudoku_grid_size ** .5)
+
+sudoku_puzzle = [[1, 0, 3, 0],
+                 [0, 4, 0, 2],
+                 [0, 0, 4, 0],
+                 [0, 0, 0, 1]
+                 ]
+
 # The function structure to go over each element is as follows:
 def sudoku_printer(puzzle):
     if not puzzle:
@@ -94,16 +120,16 @@ def sudoku_printer(puzzle):
 def verify_entries(puzzle):
     for row in range(len(puzzle)):
         for column in range(len(puzzle[row])):
-            if not (puzzle[row][column] <= 9 and puzzle[row][column] >= 0 and isinstance(puzzle[row][column], int)):
+            if not (sudoku_grid_size >= puzzle[row][column] >= 0 and isinstance(puzzle[row][column], int)):
                 return False
     return True
 
 
 def verify_shape(puzzle):
-    if len(puzzle) != 9:
+    if len(puzzle) != sudoku_grid_size:
         return False
     for row in range(len(puzzle)):
-        if len(puzzle[row]) != 9:
+        if len(puzzle[row]) != sudoku_grid_size:
             return False
     return True
 
@@ -158,15 +184,15 @@ def column_constraint(puzzle, candidate, column):
 # block.
 
 def block_constraint(puzzle, candidate, row, column):
-    block_row = row // 3
+    block_row = row // sudoku_root
     logging.debug("Block Row is {a}".format(a=block_row))
-    column_row = column // 3
+    column_row = column // sudoku_root
     logging.debug("Column Row is {a}".format(a=column_row))
 
-    for i in range(3):
-        for j in range(3):
-            logging.debug("{a}".format(a=puzzle[block_row * 3 + i][column_row * 3 + j]))
-            if candidate == puzzle[block_row * 3 + i][column_row * 3 + j]:
+    for i in range(sudoku_root):
+        for j in range(sudoku_root):
+            logging.debug("{a}".format(a=puzzle[block_row * sudoku_root + i][column_row * sudoku_root + j]))
+            if candidate == puzzle[block_row * sudoku_root + i][column_row * sudoku_root + j]:
                 logging.debug("Constraint is False. Return.")
                 return False
 
@@ -198,7 +224,7 @@ def naive_solve_sudoku(puzzle):
     for row in range(len(puzzle)):
         for column in range(len(puzzle[row])):
             if puzzle[row][column] == 0:
-                for candidate in range(9):
+                for candidate in range(sudoku_grid_size):
                     if all_constraint(puzzle, candidate, row, column):
                         puzzle[row][column] = candidate
     return puzzle
@@ -245,12 +271,12 @@ def remove_element(puzzle, row, column):
 def __solve_sudoku_algo(puzzle, index=0):
     # Define final recursion state and return value if recursion is successful
     # Flatten the row/column calls, we'll cast both to 'index' and reference row/column off index.
-    if index == 81:
+    if index == sudoku_grid_size ** 2:
         return puzzle
 
     # rebuilding row/column location
-    column = index % 9
-    row = index // 9
+    column = index % sudoku_grid_size
+    row = index // sudoku_grid_size
     logging.info(
         "SS called at index {index}, and at row {row} and column {column}".format(index=index, row=row, column=column))
 
@@ -260,7 +286,7 @@ def __solve_sudoku_algo(puzzle, index=0):
         return __solve_sudoku_algo(puzzle, index + 1)
 
     # iterate through all 1-9 possibilities in the given cell.
-    for candidate in range(9):
+    for candidate in range(sudoku_grid_size):
 
         # if all constraints are valid, assign it the number, then pass the new candidate puzzle to another solve_sudoku
         if all_constraint(puzzle, candidate + 1, row, column):
