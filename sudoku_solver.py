@@ -1,6 +1,8 @@
 import logging
+import copy
 
-# Custom logging attempt. TODO: replace with class method in another module.
+# Custom logging attempt.
+# TODO: replace with class method in another module. Possibly leave for future work for future modules.
 # # custom logger:
 # log_column = logging.getLogger(__name__)
 #
@@ -43,6 +45,7 @@ sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
                  [0, 4, 0, 0, 0, 9, 0, 3, 1]
                  ]
 
+
 # sudoku_puzzle = [[3, 0, 1, 8, 0, 7, 0, 0, 0],
 #                  [6, 0, 0, 4, 9, 1, 3, 7, 0],
 #                  [0, 0, 0, 0, 0, 0, 1, 8, 0],
@@ -54,8 +57,8 @@ sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
 #                  [0, 0, 3, 0, 0, 0, 0, 0, 0]
 #                  ]
 
-#From https://www.sudoku-solutions.com/
-#Test1Charlie
+# From https://www.sudoku-solutions.com/
+# Test1Charlie
 # sudoku_puzzle = [[1, 0, 3, 0, 9, 0, 0, 8, 0],
 #                  [0, 0, 2, 0, 1, 8, 0, 0, 0],
 #                  [8, 0, 0, 0, 0, 0, 1, 0, 0],
@@ -70,21 +73,39 @@ sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
 
 # The function structure to go over each element is as follows:
 def sudoku_printer(puzzle):
+    if not puzzle:
+        return print("You have passed 'False'! If you're expecting a puzzle, there was perhaps no solution?")
 
-    # Added to check for conditions passed from sudoku solver.
-    if isinstance(puzzle, str):
-        print(puzzle)
-        return
+    # Check if what's passed is a valid sudoku matrix.
 
-    for row in range(len(puzzle)):
-        print()  # used to add en endline
-        for column in range(len(puzzle[row])):
-            print(puzzle[row][column], end=' ')  # end used to not print the end line command
-    print()  # final end line
+    if verify_entries(puzzle) and verify_shape(puzzle):
+
+        for row in range(len(puzzle)):
+            print()  # used to add en endline
+            for column in range(len(puzzle[row])):
+                print(puzzle[row][column], end=' ')  # end used to not print the end line command
+        print()  # final end line
 
 
 # This function only prints but the structure can be used for the iterative check
-# TODO: change this to a decorator? Review after defining the solver
+# PASS: change this to a decorator? Review after defining the solver.
+#       -Doesn't seem appropriate as you would need the values passed from the function as is.
+
+def verify_entries(puzzle):
+    for row in range(len(puzzle)):
+        for column in range(len(puzzle[row])):
+            if not (puzzle[row][column] <= 9 and puzzle[row][column] >= 0 and isinstance(puzzle[row][column], int)):
+                return False
+    return True
+
+
+def verify_shape(puzzle):
+    if len(puzzle) != 9:
+        return False
+    for row in range(len(puzzle)):
+        if len(puzzle[row]) != 9:
+            return False
+    return True
 
 
 # We define three functions to test the constraints.
@@ -114,7 +135,8 @@ def row_constraint(puzzle, candidate, row):
 def column_constraint(puzzle, candidate, column):
     for row in range(len(puzzle)):
 
-        logging.debug("The value at row:{row}, column:{column} is {a}".format(row=row, column=column, a=puzzle[row][column]))
+        logging.debug(
+            "The value at row:{row}, column:{column} is {a}".format(row=row, column=column, a=puzzle[row][column]))
 
         if candidate == puzzle[row][column]:
             logging.debug("Constraint is False. Return.")
@@ -122,6 +144,7 @@ def column_constraint(puzzle, candidate, column):
 
     logging.debug("Constraint is True. Return.")
     return True
+
 
 # N.B. Alternatively - we could import numpy, transpose the matrix and then use 'in' method or possibly other methods.
 # Or manually transpose. Complexity trade off.
@@ -150,7 +173,12 @@ def block_constraint(puzzle, candidate, row, column):
     logging.debug("Constraint is True. Return.")
     return True
 
-# TODO: explore solution using modulo?
+
+# DONE: explore solution using modulo?
+#       -alternative solutions appear to pass in values of row - row % 3 to set the index as the top-left entry and
+#        iterate over a range of 3x3. Effectively floor division - possibly done as other languages may not have
+#        (easy) floor division functions and it was not exploiting built-in python methods. Similar behvaiour can be
+#        seen in other functions that do not have 'in' method for lists.
 
 
 # As any given candidate must satisfy all three constraints, we'll compound these to reduce future function calls.
@@ -161,12 +189,10 @@ def all_constraint(puzzle, candidate, row, column):
            block_constraint(puzzle, candidate, row, column)
 
 
-
-
 # Finally, create a function to iterate over solutions and check if they satisfy constraints. This will take an
 # incomplete Sudoku puzzle and return a completed puzzle (array) or return 'unsolvable'.
 
-# Naive solution is to simply iterate through:
+# Naive (and incomplete) solution is to simply iterate through:
 
 def naive_solve_sudoku(puzzle):
     for row in range(len(puzzle)):
@@ -176,6 +202,7 @@ def naive_solve_sudoku(puzzle):
                     if all_constraint(puzzle, candidate, row, column):
                         puzzle[row][column] = candidate
     return puzzle
+
 
 # This only returns items which can be satisfied with a first pass.
 
@@ -203,6 +230,7 @@ def add_element(puzzle, candidate, row, column):
     puzzle[row][column] = candidate
     return puzzle
 
+
 def remove_element(puzzle, row, column):
     puzzle[row][column] = 0
     return puzzle
@@ -210,9 +238,11 @@ def remove_element(puzzle, row, column):
 
 # Function which takes a Sudoku puzzle and solves. Index is need to easily initialize but otherwise shouldn't be passed
 # on the original function call.
-# TODO: remove the ability for the user to add an index function call.
-def solve_sudoku(puzzle, index=0):
+# Done: remove the ability for the user to add an index function call.
+#       -At least as much as one can - changed it to a private method call should we ever want to change this to a class
+#        and otherwise abstracted the algorthimic portion away from the call.
 
+def __solve_sudoku_algo(puzzle, index=0):
     # Define final recursion state and return value if recursion is successful
     # Flatten the row/column calls, we'll cast both to 'index' and reference row/column off index.
     if index == 81:
@@ -221,12 +251,13 @@ def solve_sudoku(puzzle, index=0):
     # rebuilding row/column location
     column = index % 9
     row = index // 9
-    logging.info("SS called at index {index}, and at row {row} and column {column}".format(index =index, row=row, column=column))
+    logging.info(
+        "SS called at index {index}, and at row {row} and column {column}".format(index=index, row=row, column=column))
 
     # check to see if the element is already filled. If so, we assume it is correct as we cannot change it
     # regardless and move onto the next element.
     if puzzle[row][column] != 0:
-        return solve_sudoku(puzzle, index + 1)
+        return __solve_sudoku_algo(puzzle, index + 1)
 
     # iterate through all 1-9 possibilities in the given cell.
     for candidate in range(9):
@@ -241,7 +272,7 @@ def solve_sudoku(puzzle, index=0):
             # take tends to be to store a flag if we've 'traversed' a node - we could do this but not needed here given
             # we know the Sudoku structure.
 
-            state = solve_sudoku(puzzle, index + 1)
+            state = __solve_sudoku_algo(puzzle, index + 1)
 
             # Decision to return to upper level decision node
             if not state:
@@ -255,13 +286,48 @@ def solve_sudoku(puzzle, index=0):
         return False
 
 
+def solve_sudoku(puzzle, verbose=True, solve_in_place=False):
+    if not verify_shape(puzzle) and verify_entries(puzzle):
+        print('This is not a valid puzzle!')
+        return False
+
+    if verbose:
+        print('\nThe Sudoku puzzle being solved is:')
+        sudoku_printer(puzzle)
+
+    if solve_in_place:
+        solution = puzzle
+        __solve_sudoku_algo(solution)
+    else:
+        solution = copy.deepcopy(puzzle)
+        __solve_sudoku_algo(solution)
+
+    if verbose:
+
+        if solution:
+            print('\nA solution is:')
+            sudoku_printer(solution)
+        else:
+            print('\nThere is no solution!')
+
+        if not solve_in_place:
+            print("\nIt has now been stored in any variable you've assigned it to.")
+        else:
+            print("\nThe original Sudoku has now been modified in place.")
+
+    return solution
+
+
 if __name__ == '__main__':
-    print()
-    print("The sudoku puzzle being solved is:")
-    sudoku_printer(sudoku_puzzle)
-    print()
-    print("The solution is:")
-    sudoku_printer(solve_sudoku(sudoku_puzzle))
+    # print()
+    # print("The sudoku puzzle being solved is:")
+    # sudoku_printer(sudoku_puzzle)
+    # print()
+    # print("The solution is:")
+
+    solve_sudoku(sudoku_puzzle, solve_in_place=True)
+
+    # print(verify_shape(sudoku_puzzle))
 
 # Tests:
 item = 9
@@ -281,4 +347,3 @@ item = 9
 # print(block_constraint(sudoku_puzzle, item, 1, 3))
 
 # print(all_constraint(sudoku_puzzle, 9, 7, 0))
-
