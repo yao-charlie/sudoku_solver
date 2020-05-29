@@ -355,11 +355,13 @@ if __name__ == '__main__':
 
     # Testing integration of the sudoku scraper
 
-    sudoku_puzzle = scrape.new_sudoku()
+    sudoku_puzzle = scrape.new_sudoku('easy')
     solve_sudoku(sudoku_puzzle, solve_in_place=True)
-    sudoku_puzzle = scrape.new_sudoku()
+    sudoku_puzzle = scrape.new_sudoku('medium')
     solve_sudoku(sudoku_puzzle, solve_in_place=True)
-    sudoku_puzzle = scrape.new_sudoku()
+    sudoku_puzzle = scrape.new_sudoku('hard')
+    solve_sudoku(sudoku_puzzle, solve_in_place=True)
+    sudoku_puzzle = scrape.new_sudoku('evil')
     solve_sudoku(sudoku_puzzle, solve_in_place=True)
 
     # print(verify_shape(sudoku_puzzle))
