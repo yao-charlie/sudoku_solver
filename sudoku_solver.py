@@ -1,5 +1,6 @@
 import logging
 import copy
+import sudoku_scraper as scrape
 
 # Custom logging attempt.
 # TODO: replace with class method in another module. Possibly leave for future work for future modules.
@@ -34,16 +35,16 @@ logging.basicConfig(level=logging.CRITICAL)
 
 # A random sample sudoku puzzle from websudoku:
 
-#sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
-                 # [0, 0, 3, 7, 1, 0, 0, 0, 0],
-                 # [0, 0, 7, 4, 0, 8, 0, 0, 0],
-                 # [0, 9, 4, 0, 8, 0, 3, 0, 0],
-                 # [1, 7, 6, 0, 5, 0, 2, 9, 8],
-                 # [0, 0, 8, 0, 9, 0, 4, 1, 0],
-                 # [0, 0, 0, 5, 0, 1, 6, 0, 0],
-                 # [0, 0, 0, 0, 7, 3, 5, 0, 0],
-                 # [0, 4, 0, 0, 0, 9, 0, 3, 1]
-                 # ]
+# sudoku_puzzle = [[2, 6, 0, 9, 0, 0, 0, 8, 0],
+#                  [0, 0, 3, 7, 1, 0, 0, 0, 0],
+#                  [0, 0, 7, 4, 0, 8, 0, 0, 0],
+#                  [0, 9, 4, 0, 8, 0, 3, 0, 0],
+#                  [1, 7, 6, 0, 5, 0, 2, 9, 8],
+#                  [0, 0, 8, 0, 9, 0, 4, 1, 0],
+#                  [0, 0, 0, 5, 0, 1, 6, 0, 0],
+#                  [0, 0, 0, 0, 7, 3, 5, 0, 0],
+#                  [0, 4, 0, 0, 0, 9, 0, 3, 1]
+#                  ]
 
 # sudoku_puzzle = [[3, 0, 1, 8, 0, 7, 0, 0, 0],
 #                  [6, 0, 0, 4, 9, 1, 3, 7, 0],
@@ -74,11 +75,11 @@ logging.basicConfig(level=logging.CRITICAL)
 # Sudoku is based off base 9 numbering (note that '0' does not exist) and that it is a squared integer. Thus, a Sudoku
 # puzzle with base 4 or base 16 are quite possible.
 
-sudoku4 = [[1, 2, 3, 4],
-           [3, 4, 1, 2],
-           [2, 1, 4, 3],
-           [4, 3, 2, 1]
-           ]
+# sudoku4 = [[1, 2, 3, 4],
+#            [3, 4, 1, 2],
+#            [2, 1, 4, 3],
+#            [4, 3, 2, 1]
+#            ]
 
 
 
@@ -87,15 +88,15 @@ sudoku4 = [[1, 2, 3, 4],
 # So we should be able to generalize our function to solve any sized sudoku's as long as we pass the correct bases and
 # roots.
 
-sudoku_grid_size = 4
+sudoku_grid_size = 9
 
 sudoku_root = int(sudoku_grid_size ** .5)
 
-sudoku_puzzle = [[1, 0, 3, 0],
-                 [0, 4, 0, 2],
-                 [0, 0, 4, 0],
-                 [0, 0, 0, 1]
-                 ]
+# sudoku_puzzle = [[1, 0, 3, 0],
+#                  [0, 4, 0, 2],
+#                  [0, 0, 4, 0],
+#                  [0, 0, 0, 1]
+#                  ]
 
 # The function structure to go over each element is as follows:
 def sudoku_printer(puzzle):
@@ -351,12 +352,21 @@ if __name__ == '__main__':
     # print()
     # print("The solution is:")
 
+
+    # Testing integration of the sudoku scraper
+
+    sudoku_puzzle = scrape.new_sudoku()
+    solve_sudoku(sudoku_puzzle, solve_in_place=True)
+    sudoku_puzzle = scrape.new_sudoku()
+    solve_sudoku(sudoku_puzzle, solve_in_place=True)
+    sudoku_puzzle = scrape.new_sudoku()
     solve_sudoku(sudoku_puzzle, solve_in_place=True)
 
     # print(verify_shape(sudoku_puzzle))
 
+
 # Tests:
-item = 9
+#item = 9
 
 # print(row_constraint(sudoku_puzzle, item, 0))
 # print(row_constraint(sudoku_puzzle, item, 1))
